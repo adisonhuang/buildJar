@@ -1,0 +1,156 @@
+buildscript {
+    ext.kotlin_version = '1.2.10'
+
+    repositories {
+        google()
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.0.1'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+//        classpath 'com.novoda:bintray-release:0.8.0'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.4.1'
+    }
+}
+
+version '1.0.3'
+group 'com.adison.gradleplugin'
+
+apply plugin: 'kotlin'
+apply plugin: 'maven'
+//apply plugin: 'com.novoda.bintray-release'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'maven-publish'
+
+
+sourceCompatibility = 1.8
+
+repositories {
+    google()
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    compile gradleApi()
+    compile 'com.android.tools.build:gradle:3.0.1'
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: 'file:repo/')
+        }
+    }
+}
+
+
+//publish {
+//    userOrg = 'adisonhyh'
+//    groupId = 'com.adison.gradleplugin'
+//    artifactId = 'jar'
+//    publishVersion = '1.0.3'
+//    desc = 'jar'
+//    website = 'https://github.com/adisonhyh/buildJar'
+//}
+
+def projectName = "GradlePluginForJar"
+def mavenDesc = 'buildjar'
+def baseUrl = 'https://github.com/adisonhyh'
+def siteUrl = baseUrl
+def gitUrl = "${baseUrl}/buildJar.git"
+def issueUrl = "${baseUrl}/buildJar/issues"
+
+def licenseIds = ['Apache-2.0']
+def licenseNames = ['The Apache Software License, Version 2.0']
+def licenseUrls = ['http://www.apache.org/licenses/LICENSE-2.0.txt']
+def inception = '2016'
+
+def username = 'adison'
+
+install {
+    repositories {
+        mavenInstaller {
+            pom.project {
+                // Description
+                name projectName
+                description mavenDesc
+                url siteUrl
+
+                // Archive
+                groupId project.group
+                artifactId 'jar'
+                version project.version
+
+                // License
+                inceptionYear inception
+                licenses {
+                    licenseNames.eachWithIndex { ln, li ->
+                        license {
+                            name ln
+                            url licenseUrls[li]
+                        }
+                    }
+                }
+                developers {
+                    developer {
+                        name username
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+                }
+            }
+        }
+    }
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    classifier = 'sources'
+}
+
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    from javadoc.destinationDir
+    classifier = 'javadoc'
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+bintray {
+    user = properties.getProperty("BINTRAY_USER")
+    key = properties.getProperty("BINTRAY_KEY")
+    configurations = ['archives']
+    pkg {
+        repo = 'maven'
+        name = projectName
+        desc = mavenDesc
+        websiteUrl = siteUrl
+        issueTrackerUrl = issueUrl
+        vcsUrl = gitUrl
+        labels = ['gradle', 'plugin', 'jar']
+        licenses = licenseIds
+        publish = true
+        publicDownloadNumbers = true
+    }
+}
