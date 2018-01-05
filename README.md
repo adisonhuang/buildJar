@@ -75,6 +75,8 @@
    ## 版本记录
 
    - **1.0.3**
+   
+     使用kotlin重写
 
      兼容 Android studio3.0
 
