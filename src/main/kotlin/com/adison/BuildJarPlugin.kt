@@ -27,6 +27,7 @@ class BuildJarPlugin : Plugin<Project> {
     private lateinit var excludeClass: HashSet<String>
     private lateinit var excludePackage: HashSet<String>
     private lateinit var excludeJar: HashSet<String>
+    private lateinit var includeClass: HashSet<String>
     override fun apply(target: Project?) {
         target?.let {
             project = target
@@ -52,6 +53,7 @@ class BuildJarPlugin : Plugin<Project> {
         if (dexTask != null) {
             val buildJarBeforeDex = "buildJarBeforeDexDebug"
             val jarExtension = project.extensions.findByType(BuildJarExtension::class.java)
+            includeClass = jarExtension.includeClass
             includePackage = jarExtension.includePackage
             excludeClass = jarExtension.excludeClass
             excludePackage = jarExtension.excludePackage
@@ -66,7 +68,7 @@ class BuildJarPlugin : Plugin<Project> {
             buildJar.exclude("**/R\$*.class")
             buildJar.archiveName = jarExtension.outputFileName
             buildJar.destinationDir = project.file(jarExtension.outputFileDir)
-            buildJar.includeEmptyDirs=true
+            buildJar.includeEmptyDirs=false
             val fromFiles: MutableList<Any> = mutableListOf()
             buildJarBeforeDexTask.let {
                 val inputFiles = dexTask.inputs.files.files
@@ -95,21 +97,23 @@ class BuildJarPlugin : Plugin<Project> {
             }
 
             buildJar.from(fromFiles,"build/intermediates/classes/debug/")
-//            excludeClass.forEach {
-//                //排除指定class
-//                buildJar.exclude(it)
-//            }
-//            excludePackage.forEach {
-//                //过滤指定包名下class
-////                project.logger.log(LogLevel.WARN,"$it/**/*.class")
-//                buildJar.exclude("$it/**/*.class")
-//            }
-//            includePackage.forEach {
-//                //仅仅打包指定包名下class
-//                project.logger.log(LogLevel.WARN, "$it" + File.separatorChar + "**" + File.separatorChar + "*.class")
-//                  buildJar.include("$it/**/*.class")
-//            }
-
+            excludeClass.forEach {
+                //排除指定class
+                buildJar.exclude(it)
+//                buildJar.setExcludes(it)
+            }
+            excludePackage.forEach {
+                //过滤指定包名下class
+                buildJar.exclude("$it/**/*.class")
+            }
+            includePackage.forEach {
+                //仅仅打包指定包名下class
+                  buildJar.include("$it/**/*.class")
+            }
+            includeClass.forEach {
+                //仅仅打包指定列表下class
+                buildJar.include(it)
+            }
 
             var buildProguardJar = project.tasks.create("buildProguardJar", ProGuardTask::class.java)
             buildProguardJar.description = "混淆jar包"
@@ -137,9 +141,10 @@ class BuildJarPlugin : Plugin<Project> {
             buildProguardJar.libraryjars(javaBase + "/" + javaRt)
             //混淆配置文件
             buildProguardJar.configuration(jarExtension.proguardConfigFile)
-//            if (jarExtension.needDefaultProguard) {
+            if (jarExtension.needDefaultProguard) {
 //                buildProguardJar.configuration(android.getDefaultProguardFile("proguard-android.txt"))
-//            }
+                buildProguardJar.configuration(android.sdkDirectory.toString() + "/tools/proguard/"+"proguard-android.txt")
+            }
             //applymapping
             val applyMappingFile = jarExtension.applyMappingFile
             buildProguardJar.applymapping(applyMappingFile)

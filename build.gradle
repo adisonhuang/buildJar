@@ -15,7 +15,7 @@ buildscript {
     }
 }
 
-version '1.0.3'
+version '1.1.0'
 group 'com.adison.gradleplugin'
 
 apply plugin: 'kotlin'

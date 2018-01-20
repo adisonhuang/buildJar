@@ -12,7 +12,7 @@ package com.adison
  * @param applyMappingFile applyMapping
  * @param needDefaultProguard 是否需要默认的混淆配置proguard-android.txt
  */
-open class BuildJarExtension(var includePackage: HashSet<String> = HashSet(), var excludeJar: HashSet<String> = HashSet(),
+open class BuildJarExtension(var includeClass: HashSet<String> = HashSet(),var includePackage: HashSet<String> = HashSet(), var excludeJar: HashSet<String> = HashSet(),
                              var excludeClass: HashSet<String> = HashSet(), var excludePackage: HashSet<String> = HashSet(),
                              var outputFileDir: String = "", var outputFileName: String = "",
                              var outputProguardFileName: String = "", var proguardConfigFile: String = "",
